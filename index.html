@@ -5,89 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>hey_prateek</title>
 <style>
-  /* Starry background styles */
-  body, html {
+  html, body {
     margin: 0;
     height: 100%;
     overflow: hidden;
-    background: black;
-    color: white;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
+    color: white;
+    background: black;
   }
 
-  .stars, .stars2, .stars3 {
+  #starfield {
     position: fixed;
-    width: 100%;
-    height: 100%;
     top: 0;
     left: 0;
-    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    display: block;
     z-index: 0;
   }
 
-  .stars {
-    background: transparent;
-    box-shadow:
-      10px 20px white,
-      30px 60px white,
-      50px 120px white,
-      90px 150px white,
-      110px 200px white,
-      130px 240px white,
-      180px 300px white,
-      210px 350px white,
-      250px 400px white,
-      300px 460px white;
-    animation: twinkle 3s infinite ease-in-out alternate;
-  }
-
-  .stars2 {
-    background: transparent;
-    box-shadow:
-      20px 30px white,
-      40px 90px white,
-      80px 170px white,
-      120px 210px white,
-      170px 260px white,
-      220px 300px white,
-      270px 380px white,
-      310px 450px white,
-      370px 510px white,
-      400px 560px white;
-    animation: twinkle 4s infinite ease-in-out alternate;
-  }
-
-  .stars3 {
-    background: transparent;
-    box-shadow:
-      15px 10px white,
-      45px 70px white,
-      70px 140px white,
-      110px 180px white,
-      160px 220px white,
-      200px 280px white,
-      260px 330px white,
-      310px 390px white,
-      360px 450px white,
-      420px 500px white;
-    animation: twinkle 5s infinite ease-in-out alternate;
-  }
-
-  @keyframes twinkle {
-    0%, 100% {opacity: 0.2;}
-    50% {opacity: 1;}
-  }
-
-  /* Content container styles */
   .container {
     position: relative;
-    max-width: 600px;
     z-index: 1;
+    max-width: 600px;
+    margin: auto;
+    padding: 2rem 1rem;
+    text-align: center;
   }
 
   h1 {
@@ -108,7 +51,7 @@
   }
 
   .links {
-    margin-top: 1.5em;
+    margin-top: 1.5rem;
   }
 
   .links a {
@@ -125,9 +68,7 @@
 </head>
 <body>
 
-<div class="stars"></div>
-<div class="stars2"></div>
-<div class="stars3"></div>
+<canvas id="starfield"></canvas>
 
 <div class="container">
   <h1>hey_prateek</h1>
@@ -138,12 +79,150 @@
     Oh btw, did I tell you that I love coffee and motorsports!<br />
     <small>P.S. - I read and write strictly as a hobby.</small>
   </p>
-
   <div class="links">
     <a href="https://substack.com/@heyprateek" target="_blank" rel="noopener">My Substack</a> |
     <a href="https://fable.co/prateek-sharma-282189154009" target="_blank" rel="noopener">What I am currently reading</a>
   </div>
 </div>
+
+<script>
+  const canvas = document.getElementById("starfield");
+  const ctx = canvas.getContext("2d");
+  let stars = [];
+  let galaxies = [];
+  const starCount = 400;
+  const galaxyCount = 4;
+
+  function randomRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function Star() {
+    this.x = Math.random() * window.innerWidth;
+    this.y = Math.random() * window.innerHeight;
+    this.radius = randomRange(0.4, 2.5);
+    this.alpha = randomRange(0.1, 1);
+    this.delta = randomRange(0.01, 0.03); // faster twinkle
+    this.glowRadius = this.radius * 3;
+  }
+
+  Star.prototype.draw = function () {
+    const gradient = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.glowRadius
+    );
+    gradient.addColorStop(0, `rgba(255,255,255,${this.alpha})`);
+    gradient.addColorStop(0.6, `rgba(255,255,255,${this.alpha * 0.1})`);
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.beginPath();
+    ctx.fillStyle = gradient;
+    ctx.arc(this.x, this.y, this.glowRadius, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fill();
+  };
+
+  Star.prototype.update = function () {
+    this.alpha += this.delta;
+    if (this.alpha <= 0.1 || this.alpha >= 1) {
+      this.delta = -this.delta;
+    }
+  };
+
+  function Galaxy() {
+    this.x = Math.random() * window.innerWidth;
+    this.y = Math.random() * window.innerHeight * 0.7 + 50;
+    this.radius = randomRange(140, 220);
+    this.rotation = Math.random() * 2 * Math.PI;
+    this.rotationSpeed = (Math.random() - 0.5) * 0.0015;
+  }
+
+  Galaxy.prototype.draw = function () {
+    var gradientOuter = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.radius
+    );
+    gradientOuter.addColorStop(0, "rgba(255, 255, 255, 0.15)");
+    gradientOuter.addColorStop(0.98, "rgba(0, 0, 0, 0)");
+
+    var gradientInner = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.radius / 2
+    );
+    gradientInner.addColorStop(0, "rgba(255, 230, 215, 0.3)");
+    gradientInner.addColorStop(0.95, "rgba(0, 0, 0, 0)");
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+
+    // Outer glow
+    ctx.beginPath();
+    ctx.fillStyle = gradientOuter;
+    ctx.ellipse(0, 0, this.radius, this.radius * 0.4, 0, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Inner brighter ellipse (galaxy core)
+    ctx.beginPath();
+    ctx.fillStyle = gradientInner;
+    ctx.ellipse(0, 0, this.radius * 0.5, this.radius * 0.15, 0, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  Galaxy.prototype.update = function () {
+    this.rotation += this.rotationSpeed;
+  };
+
+  function init() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = [];
+    galaxies = [];
+    for (let i = 0; i < starCount; i++) {
+      stars.push(new Star());
+    }
+    for (let i = 0; i < galaxyCount; i++) {
+      galaxies.push(new Galaxy());
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    galaxies.forEach((g) => {
+      g.update();
+      g.draw();
+    });
+    stars.forEach((star) => {
+      star.update();
+      star.draw();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener("resize", () => {
+    init();
+  });
+
+  init();
+  animate();
+</script>
 
 </body>
 </html>
