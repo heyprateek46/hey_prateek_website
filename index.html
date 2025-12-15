@@ -94,7 +94,9 @@
   const ctx = canvas.getContext("2d");
   let stars = [];
   let galaxies = [];
-  const starCount = 400;
+  // Fewer stars on small screens, more on desktop
+  const isMobile = window.innerWidth < 768;
+  const starCount = isMobile ? 150 : 400;
   const galaxyCount = 4;
 
   function randomRange(min, max) {
@@ -105,8 +107,9 @@
     this.x = Math.random() * window.innerWidth;
     this.y = Math.random() * window.innerHeight;
     this.radius = randomRange(0.4, 2.5);
-    this.alpha = randomRange(0.1, 1);
-    this.delta = randomRange(0.01, 0.03); // faster twinkle
+    // Dimmer stars so text is clearer
+    this.alpha = randomRange(0.1, 0.5);
+    this.delta = randomRange(0.005, 0.02);
     this.glowRadius = this.radius * 3;
   }
 
@@ -135,7 +138,7 @@
 
   Star.prototype.update = function () {
     this.alpha += this.delta;
-    if (this.alpha <= 0.1 || this.alpha >= 1) {
+    if (this.alpha <= 0.1 || this.alpha >= 0.5) {
       this.delta = -this.delta;
     }
   };
@@ -228,8 +231,10 @@
   animate();
 </script>
 
+
 </body>
 </html>
+
 
 
 
